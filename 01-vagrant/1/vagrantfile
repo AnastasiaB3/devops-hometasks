@@ -1,14 +1,17 @@
 Vagrant.configure("2") do |config|
-    config.vm.box = "debian/bullseye64"
-  
-    config.vm.network "forwarded_port", guest: 80, host: 8080
-    config.vm.network "forwarded_port", guest: 8081, host: 8081
-  
-    config.vm.provision "shell", inline: <<-SHELL
-      apt-get update
-      apt-get install -y apache2 php libapache2-mod-php
-      rm /var/www/html/index.html
-      echo "<html><body><h1>Hello from Static HTML</h1></body></html>" > /var/www/html/index.html
-      echo "<?php phpinfo(); ?>" > /var/www/html/index.php
-    SHELL
-  end
+  config.vm.box = "debian/bullseye64"
+  config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "forwarded_port", guest: 80, host: 8081
+
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    apt-get install -y apache2 php libapache2-mod-php
+
+    echo '<html><head><title>Success!</title></head><body>You Vagrantfile is fine if you can see this message.</body></html>' > /var/www/html/index.html
+
+    echo '<?php \$limit = rand(1, 1000); for (\$i=0; \$i<\$limit; \$i++){ echo "<p>Hello, world!</p>"; } ?>' > /var/www/html/index.php
+
+    a2enmod php7.4
+    systemctl restart apache2
+  SHELL
+end
