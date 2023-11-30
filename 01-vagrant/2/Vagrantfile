@@ -1,5 +1,5 @@
 Vagrant.configure("2") do |config|
-
+  # Configuring static site
   config.vm.define "static-site" do |static|
     static.vm.box = "debian/bullseye64"
     static.vm.network "private_network", ip: "192.168.50.4"
@@ -11,6 +11,7 @@ Vagrant.configure("2") do |config|
     SHELL
   end
 
+  # Configuring dynamic site
   config.vm.define "dynamic-site" do |dynamic|
     dynamic.vm.box = "debian/bullseye64"
     dynamic.vm.network "private_network", ip: "192.168.50.5"
@@ -18,7 +19,20 @@ Vagrant.configure("2") do |config|
     dynamic.vm.provision "shell", inline: <<-SHELL
       apt-get update
       apt-get install -y apache2 php libapache2-mod-php
-      echo '<?php echo \"<html><head><title>Site is running PHP version \".phpversion().\"</title></head><body>\"; \$limit = rand(1, 1000); for (\$i=0; \$i<\$limit; \$i++){ echo \"<p>Hello, world!</p>\"; } echo \"</body></html>\"; ?>' > /var/www/html/index.php
+      echo '<?php echo "<html><head><title>Site is running PHP version ".phpversion()."</title></head><body>"; \$limit = rand(1, 1000); for (\$i=0; \$i<\$limit; \$i++){ echo "<p>Hello, world!</p>"; } echo "</body></html>"; ?>' > /var/www/html/index.php
+
+      # Remove or move index.html
+      rm /var/www/html/index.html || mv /var/www/html/index.html /var/www/html/index.html.bak
+
+      # Configuring Apache to use index.php as an index file
+      echo '<FilesMatch \.php$>' > /etc/apache2/conf-available/php_index.conf
+      echo '    SetHandler application/x-httpd-php' >> /etc/apache2/conf-available/php_index.conf
+      echo '</FilesMatch>' >> /etc/apache2/conf-available/php_index.conf
+      a2enconf php_index
+      systemctl restart apache2
     SHELL
+
+    config.vm.provision "file", run: "always", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/id_rsa.pub"
+    config.vm.provision "file", run: "always", source: "~/.ssh/id_rsa", destination: "~/.ssh/id_rsa"
   end
 end
