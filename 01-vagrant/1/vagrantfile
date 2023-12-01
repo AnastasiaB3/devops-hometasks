@@ -13,12 +13,12 @@ Vagrant.configure("2") do |config|
 
     a2enmod php7.4
 
-  echo "Listen 81" | sudo tee -a /etc/apache2/ports.conf
+ echo "Listen 81" | sudo tee -a /etc/apache2/ports.conf
 
-  echo "
+ echo "
   <VirtualHost *:81>
       DocumentRoot /var/www/html
-
+      DirectoryIndex index.php
       <Directory /var/www/html>
           Options Indexes FollowSymLinks MultiViews
           AllowOverride All
@@ -26,10 +26,8 @@ Vagrant.configure("2") do |config|
       </Directory>
   </VirtualHost>" | sudo tee /etc/apache2/sites-available/8081.conf
 
-  # Включение виртуального хоста для порта 81
-  sudo a2ensite 8081.conf
+sudo a2ensite 8081.conf
 
-  # Перезапуск Apache для применения изменений
-  sudo systemctl restart apache2
-SHELL
+sudo systemctl restart apache2
+  SHELL
 end
